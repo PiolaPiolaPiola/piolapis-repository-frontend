@@ -1,0 +1,95 @@
+.user-item {
+  margin-bottom: 4px;
+  list-style: none;
+  border: 1px solid var(--color-border, #ccc);
+  padding: 1rem;
+  background-color: var(--color-container);
+  border-radius: 8px;
+}
+
+.user-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.user-item__role {
+  display: inline-block;
+  color: #acd6b2;
+  margin-left: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.user-item__description {
+  margin: 3px 0;
+  font-size: 11px;
+  font-style: italic;
+  color: #eee5e5;
+}
+
+.user-item__meta {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.user-item__actions {
+display: flex;
+  align-items: center; 
+  gap: 10px;
+}
+
+.user-item__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.user-item__button--edit {
+  color: #64748b;
+}
+
+.user-item__button--edit:hover {
+  color: #2563eb;
+  transform: scale(1.1);
+}
+
+.user-item__button--delete {
+  color: #94a3b8;
+}
+
+.user-item__button--delete:hover {
+  color: #dc2626;
+  transform: scale(1.1);
+}
+
+.user-item__info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  cursor: help;
+  color: #64748b;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.user-item__info-icon:hover {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.user-item__status{
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 15px;
+}

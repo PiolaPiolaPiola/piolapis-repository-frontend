@@ -5,6 +5,11 @@ import { Layout } from './components/Layout';
 import { UsersPage } from './pages/UsersPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ConfigurationPage } from './pages/ConfigurationPage';
+import { VariablesPage } from './pages/VariablesPage';
+import { DocumentationPage } from './pages/DocumentationPage';
+import { CodeMessagesPage } from './pages/CodeMessagesPage';
+import { DocumentationSettingsPage } from './pages/DocumentationSettingsPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 export const App: React.FC = () => {
   return (
@@ -12,8 +17,12 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/users" replace />} />
+            <Route index element={<DashboardPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="variables" element={<VariablesPage />} />
+            <Route path="documentaciones" element={<DocumentationPage />} />
+            <Route path="mensajes-codigos" element={<CodeMessagesPage />} />
+            <Route path="configuraciones-documentacion" element={<DocumentationSettingsPage />} />
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="configuration" element={<ConfigurationPage />} />
             <Route path="*" element={<Navigate to="/users" replace />} />

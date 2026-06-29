@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import lightLogo from '../assets/Logo_claro_png.png';
+import darkLogo from '../assets/Logo_oscuro.png';
 import { 
   Users, 
-  ShieldCheck, 
   FolderGit2, 
   Settings, 
+  Hash,
+  FileText,
+  MessageSquare,
+  Layers,
   Sun, 
   Moon, 
-  Menu, 
-  X, 
   LogOut, 
-  LogIn 
+  LogIn,
+  PanelsLeftBottom 
 } from 'lucide-react';
+import './Sidebar.css';
 
-export const Sidebar: React.FC = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+interface SidebarProps {
+  isCollapsed: boolean;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const { session, theme, toggleTheme, loginMock, logout } = useApp();
 
   const sidebarStyle: React.CSSProperties = {
@@ -32,7 +40,8 @@ export const Sidebar: React.FC = () => {
   };
 
   const headerStyle: React.CSSProperties = {
-    padding: '1rem',
+    padding: '0.75rem 1rem',
+    height: '70px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: isCollapsed ? 'center' : 'space-between',
@@ -69,15 +78,25 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside style={sidebarStyle}>
-      <div style={headerStyle}>
-        {!isCollapsed && <span style={{ fontWeight: 'bold' }}>DocuChirp</span>}
-        <button onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? <Menu size={20} /> : <X size={20} />}
-        </button>
+      <div style={headerStyle} className="sidebar__header">
+        <div className="sidebar__brand">
+          <Link to="/" className="sidebar__logo-link">
+            <div className="sidebar__logo">
+              <img src={theme === 'light' ? lightLogo : darkLogo} alt="Logo PiolAPIs" />
+            </div>
+          </Link>
+          {!isCollapsed && <div className="sidebar__brand-text">PiolAPIs Repository</div>}
+        </div>
       </div>
 
       <nav style={{ flex: 1 }}>
         <ul style={navListStyle}>
+          <li>
+            <NavLink to="/" style={linkStyle}>
+              <PanelsLeftBottom size={20} />
+              {!isCollapsed && <span>Panel Principal</span>}
+            </NavLink>
+          </li>
           <li>
             <NavLink to="/users" style={linkStyle}>
               <Users size={20} />
@@ -85,15 +104,33 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/roles" style={linkStyle}>
-              <ShieldCheck size={20} />
-              {!isCollapsed && <span>Roles</span>}
-            </NavLink>
-          </li>
-          <li>
             <NavLink to="/projects" style={linkStyle}>
               <FolderGit2 size={20} />
               {!isCollapsed && <span>Proyectos</span>}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/variables" style={linkStyle}>
+              <Hash size={20} />
+              {!isCollapsed && <span>Variables</span>}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/documentaciones" style={linkStyle}>
+              <FileText size={20} />
+              {!isCollapsed && <span>Documentaciones</span>}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/mensajes-codigos" style={linkStyle}>
+              <MessageSquare size={20} />
+              {!isCollapsed && <span>Mensajes/Códigos</span>}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/configuraciones-documentacion" style={linkStyle}>
+              <Layers size={20} />
+              {!isCollapsed && <span>Config. Documentación</span>}
             </NavLink>
           </li>
           <li>
@@ -106,30 +143,34 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div style={footerStyle}>
-        <button 
-          onClick={toggleTheme} 
-          style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
-        >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-          {!isCollapsed && <span>{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>}
-        </button>
+        {!isCollapsed && (
+          <>
+            <button 
+              onClick={toggleTheme} 
+              style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
+            >
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              <span>{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
+            </button>
 
-        {session ? (
-          <button 
-            onClick={logout} 
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-alert)', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
-          >
-            <LogOut size={20} />
-            {!isCollapsed && <span>Salir ({session.username})</span>}
-          </button>
-        ) : (
-          <button 
-            onClick={loginMock} 
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
-          >
-            <LogIn size={20} />
-            {!isCollapsed && <span>Iniciar Sesión</span>}
-          </button>
+            {session ? (
+              <button 
+                onClick={logout} 
+                style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-alert)', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
+              >
+                <LogOut size={20} />
+                <span>Salir ({session.username})</span>
+              </button>
+            ) : (
+              <button 
+                onClick={loginMock} 
+                style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
+              >
+                <LogIn size={20} />
+                <span>Iniciar Sesión</span>
+              </button>
+            )}
+          </>
         )}
       </div>
     </aside>

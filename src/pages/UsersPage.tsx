@@ -1,331 +1,299 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { userManagementSchema } from '../utils/validations';
-import type { UserManagementFormData } from '../utils/validations';
 import type { User } from '../types';
-import { Shield, Trash2, Edit, CheckCircle2, XCircle, UserPlus, RefreshCw, Eye } from 'lucide-react';
-
-const API_URL = 'http://localhost:5000/api/v1/usuarios';
+import { userService } from '../services/userService';
+import { UserListItem } from '../components/UserListItem';
+import { userSchema } from '../schemas/userSchema';
+import './UsersPage.css';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [filterRole, setFilterRole] = useState<string>('');
-  const [errorApi, setErrorApi] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<UserManagementFormData>({
-    resolver: zodResolver(userManagementSchema)
+  const [includeInactive, setIncludeInactive] = useState<boolean>(false);
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const [formData, setFormData] = useState({
+    name: '',
+    lastName: '',
+    description: '',
+    role: ''
   });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  const fetchUsers = async (roleParam?: string) => {
-    setLoading(true);
-    setErrorApi(null);
+  const isEditing = Boolean(editingUserId);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [includeInactive]);
+
+  const fetchUsers = async () => {
     try {
-      const url = roleParam ? `${API_URL}?rol=${roleParam}` : API_URL;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Error al obtener la lista de usuarios');
-      const data: User[] = await response.json();
-      
-      if (data.length === 0) {
-        setUsers([
-          {
-            id: 'a28aa2d9-6d74-4a65-a4a6-cf4bfa8777d6',
-            username: 'admin_initial',
-            name: 'Usuario',
-            lastName: 'Prueba',
-            description: 'Usuario administrador inicial del sistema de catálogo.',
-            isActive: true,
-            createdDate: new Date().toISOString(),
-            updatedDate: new Date().toISOString(),
-            role: 'Admin'
-          }
-        ]);
-      } else {
-        setUsers(data);
-      }
-    } catch (error) {
-      setErrorApi('No se pudo conectar con el servidor externo. Cargando datos simulados.');
-      setUsers([
-        {
-          id: 'a28aa2d9-6d74-4a65-a4a6-cf4bfa8777d6',
-          username: 'admin_initial',
-          name: 'Usuario (Local)',
-          lastName: 'Prueba',
-          description: 'Usuario administrador inicial del sistema de catálogo.',
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          role: 'Admin'
-        }
-      ]);
+      setLoading(true);
+      setError(null);
+      const data = await userService.getAll(undefined, includeInactive);
+      setUsers(data);
+    } catch (err: any) {
+      setError(err.message || 'Error al conectar con el backend.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFilterRole(value);
-    fetchUsers(value);
+    setFormData((prev) => {
+      const updatedForm = { ...prev, [name]: value };
+
+      const fieldSchema = userSchema.shape[name as keyof typeof userSchema.shape];
+
+      if (fieldSchema) {
+        const result = fieldSchema.safeParse(value);
+
+        if (!result.success) {
+          const issue = result.error.issues[0];
+          setFieldErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: issue ? issue.message : 'Campo inválido',
+          }));
+        } else {
+          setFieldErrors((prevErrors) => {
+            const updatedErrors = { ...prevErrors };
+            delete updatedErrors[name];
+            return updatedErrors;
+          });
+        }
+      }
+
+      return updatedForm;
+    });
   };
 
-  const handleFetchById = async (id: string) => {
-    setErrorApi(null);
-    try {
-      const response = await fetch(`${API_URL}/${id}`);
-      if (!response.ok) throw new Error();
-      const data: User = await response.json();
-      alert(`Detalle consultado:\nID: ${data.id}\nNombre Completo: ${data.name} ${data.lastName}\nRol asignado: ${data.role}`);
-    } catch {
-      setErrorApi('No se pudo recuperar la información del usuario desde el backend.');
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      lastName: '',
+      description: '',
+      role: ''
+    });
+    setEditingUserId(null);
+    setFieldErrors({}); 
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setFieldErrors({});
+
+    const result = userSchema.safeParse(formData);
+
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          errors[issue.path[0] as string] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
     }
-  };
 
-  const onSubmit = async (data: UserManagementFormData) => {
-    setErrorApi(null);
+    const validatedData = result.data;
+
     try {
-      if (isEditing && selectedUser?.id) {
-        const updatedModel: User = {
-          ...selectedUser,
-          name: data.name,
-          lastName: data.lastName,
-          description: data.description,
-          role: data.role,
-          updatedDate: new Date().toISOString()
-        };
-
-        const response = await fetch(`${API_URL}/${selectedUser.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedModel)
+      if (isEditing && editingUserId) {
+        await userService.update(editingUserId, {
+          name: validatedData.name,
+          lastName: validatedData.lastName,
+          description: validatedData.description
         });
 
-        if (!response.ok) throw new Error();
+        setUsers((prev) => prev.map((user) =>
+          user.id === editingUserId
+            ? { ...user, name: validatedData.name, lastName: validatedData.lastName, description: validatedData.description }
+            : user
+        ));
 
-        setUsers((prev) => prev.map((item) => item.id === selectedUser.id ? updatedModel : item));
-        alert('Usuario actualizado de forma correcta');
-      } else {
-        const newModel: User = {
-          id: null,
-          username: data.username,
-          password: data.password,
-          name: data.name,
-          lastName: data.lastName,
-          description: data.description,
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          role: data.role
-        };
-
-        const response = await fetch(`${API_URL}/registro`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newModel)
-        });
-
-        if (!response.ok) throw new Error();
-
-        const createdData: User = await response.json();
-        setUsers((prev) => [...prev, createdData]);
-        alert('Usuario registrado de forma correcta');
+        resetForm();
+        return;
       }
-      cancelEdit();
-    } catch (error) {
-      setErrorApi('Error en la operación del backend. Aplicando mutación local en memoria.');
-      if (isEditing && selectedUser?.id) {
-        setUsers((prev) => prev.map((item) => item.id === selectedUser.id ? { ...item, name: data.name, lastName: data.lastName, description: data.description, role: data.role, updatedDate: new Date().toISOString() } : item));
-      } else {
-        const localMock: User = {
-          id: crypto.randomUUID(),
-          username: data.username,
-          name: data.name,
-          lastName: data.lastName,
-          description: data.description,
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          role: data.role
-        };
-        setUsers((prev) => [...prev, localMock]);
-      }
-      cancelEdit();
+
+      const createdUser = await userService.create(validatedData);
+
+      setUsers((prev) => [...prev, createdUser]);
+      resetForm();
+    } catch (err: any) {
+      setError(err.message || (isEditing ? 'No se pudo actualizar el usuario.' : 'No se pudo guardar el usuario.'));
     }
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    setErrorApi(null);
-    const patchedModel = {
-      isActive: !currentStatus,
-      updatedDate: new Date().toISOString()
-    };
+  const handleDelete = async (id: string | null) => {
+    if (!id) return;
+    if (!window.confirm('¿Está seguro de eliminar este usuario?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/${id}/estado`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patchedModel)
-      });
-
-      if (!response.ok) throw new Error();
-
-      setUsers((prev) => prev.map((item) => item.id === id ? { ...item, isActive: !currentStatus, updatedDate: patchedModel.updatedDate } : item));
-    } catch {
-      setErrorApi('No se pudo aplicar el patch de estado en el servidor. Modificando localmente.');
-      setUsers((prev) => prev.map((item) => item.id === id ? { ...item, isActive: !currentStatus, updatedDate: patchedModel.updatedDate } : item));
+      setError(null);
+      await userService.delete(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'No se pudo eliminar el usuario.');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Desea eliminar físicamente este registro de la base de datos?')) return;
-    setErrorApi(null);
+  const handleEdit = (user: User) => {
+    if (!user.id) return;
+
+    setFormData({
+      name: user.name,
+      lastName: user.lastName,
+      description: user.description,
+      role: user.role
+    });
+    setEditingUserId(user.id);
+    setError(null);
+    setFieldErrors({});
+  };
+
+  const handleActivate = async (id: string | null, currentStatus: boolean | undefined) => {
+    if (!id) return;
 
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
+      setError(null);
+      
+      const newStatus = !currentStatus; 
+      
+      await userService.patch(id, newStatus);
+
+      setUsers((prevUsers) => {
+        if (!newStatus && !includeInactive) {
+          return prevUsers.filter((user) => user.id !== id);
+        }
+        
+        return prevUsers.map((user) =>
+          user.id === id ? { ...user, isActive: newStatus } : user
+        );
       });
-
-      if (!response.ok) throw new Error();
-
-      setUsers((prev) => prev.filter((item) => item.id !== id));
-      alert('Registro eliminado del servidor');
-    } catch {
-      setErrorApi('El servidor denegó la baja física. Limpiando el registro de la vista local.');
-      setUsers((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'No se pudo cambiar el estado del usuario.');
     }
-  };
-
-  const startEdit = (user: User) => {
-    setSelectedUser(user);
-    setIsEditing(true);
-    setValue('username', user.username || '');
-    setValue('name', user.name);
-    setValue('lastName', user.lastName);
-    setValue('description', user.description);
-    setValue('role', user.role);
-  };
-
-  const cancelEdit = () => {
-    setSelectedUser(null);
-    setIsEditing(false);
-    reset();
   };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2>Administración de Usuarios</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <select value={filterRole} onChange={handleFilterChange} style={{ padding: '0.5rem', background: 'var(--color-container)', color: 'inherit', border: '1px solid var(--color-border)' }}>
-            <option value="">Filtrar por Rol (Todos)</option>
+      <h2 className="users-page__title">Administración de Usuarios</h2>
+
+      {error && (
+        <div className="users-page__error">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="users-page__form" noValidate>
+        <div className="users-page__field-group">        
+          <label htmlFor="name" className="users-page__label">
+            Nombre <span className="users-page__required">*</span>
+          </label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Nombre"
+            className={`users-page__input ${fieldErrors.name ? 'users-page__input--error' : ''}`}
+          />
+          {fieldErrors.name && <span className="users-page__feedback-error">{fieldErrors.name}</span>}
+        </div>
+
+        <div className="users-page__field-group">
+          <label htmlFor="lastName" className="users-page__label">
+            Apellido <span className="users-page__required">*</span>
+          </label>
+          <input
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Apellido"
+            className={`users-page__input ${fieldErrors.lastName ? 'users-page__input--error' : ''}`}
+          />
+          {fieldErrors.lastName && <span className="users-page__feedback-error">{fieldErrors.lastName}</span>}
+        </div>
+
+        <div className="users-page__field-group">
+          <label htmlFor="description" className="users-page__label">
+            Descripción <span className="users-page__required">*</span>
+          </label>
+          <input
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Descripción de funciones"
+            className={`users-page__input ${fieldErrors.description ? 'users-page__input--error' : ''}`}
+          />
+          {fieldErrors.description && <span className="users-page__feedback-error">{fieldErrors.description}</span>}
+        </div>
+
+        <div className="users-page__field-group">
+          <label htmlFor="role" className="users-page__label">
+            Rol <span className="users-page__required">*</span>
+          </label>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            disabled={isEditing}
+            className={`users-page__select ${fieldErrors.role ? 'users-page__input--error' : ''}`}
+          >
+            <option value="">Seleccione Rol</option>
             <option value="Admin">Admin</option>
-            <option value="Operator">Operator</option>
+            <option value="Editor">Editor</option>
+            <option value="Reader">Lector</option>
           </select>
-          <button onClick={() => fetchUsers(filterRole)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem', border: '1px solid var(--color-border)' }}>
-            <RefreshCw size={16} /> Recargar
-          </button>
-        </div>
-      </div>
-
-      {errorApi && <p style={{ color: 'var(--color-alert)', padding: '0.5rem', border: '1px solid var(--color-alert)', marginBottom: '1rem' }}>{errorApi}</p>}
-
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '600px', marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--color-container)', border: '1px solid var(--color-border)' }}>
-        <h3>{isEditing ? 'Actualizar Información de Usuario' : 'Registrar Nuevo Integrante'}</h3>
-        
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div style={{ flex: 1 }}>
-            <input {...register('username')} placeholder="Username" disabled={isEditing} style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)', opacity: isEditing ? 0.6 : 1 }} />
-            {errors.username && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.username.message}</p>}
-          </div>
-          {!isEditing && (
-            <div style={{ flex: 1 }}>
-              <input {...register('password')} type="password" placeholder="Contraseña de acceso" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)' }} />
-              {errors.password && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.password.message}</p>}
-            </div>
-          )}
+          {fieldErrors.role && <span className="users-page__feedback-error">{fieldErrors.role}</span>}
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div style={{ flex: 1 }}>
-            <input {...register('name')} placeholder="Nombre" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)' }} />
-            {errors.name && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.name.message}</p>}
-          </div>
-          <div style={{ flex: 1 }}>
-            <input {...register('lastName')} placeholder="Apellido" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)' }} />
-            {errors.lastName && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.lastName.message}</p>}
-          </div>
-        </div>
-
-        <div>
-          <input {...register('description')} placeholder="Descripción detallada de responsabilidades" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)' }} />
-          {errors.description && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.description.message}</p>}
-        </div>
-
-        <div>
-          <select {...register('role')} style={{ width: '100%', padding: '0.5rem', background: 'var(--color-container)', color: 'inherit', border: '1px solid var(--color-border)' }}>
-            <option value="">Seleccione un perfil de acceso</option>
-            <option value="Admin">Admin</option>
-            <option value="Operator">Operator</option>
-          </select>
-          {errors.role && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.role.message}</p>}
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-          <button type="submit" style={{ flex: 1, backgroundColor: 'var(--color-accent)', color: '#000000', padding: '0.6rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <UserPlus size={18} /> {isEditing ? 'Actualizar Credenciales' : 'Dar de Alta'}
+        <div className="users-page__actions">
+          <button type="submit" className="users-page__button">
+            {isEditing ? 'Editar' : 'Registrar'}
           </button>
           {isEditing && (
-            <button type="button" onClick={cancelEdit} style={{ flex: 1, border: '1px solid var(--color-border)', padding: '0.6rem' }}>
-              Declinar
+            <button type="button" onClick={resetForm} className="users-page__button users-page__button--cancel">
+              Cancelar edición
             </button>
           )}
         </div>
       </form>
 
+      <div className="users-page__list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px 0' }}>
+        <h3 className="users-page__subtitle" style={{ margin: 0 }}>Usuarios existentes</h3>
+        
+        <label className="users-page__checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(e) => setIncludeInactive(e.target.checked)}
+            className="users-page__checkbox"
+          />
+          <span>Incluir inactivos</span>
+        </label>
+      </div>
+      
       {loading ? (
-        <p>Procesando flujo de datos...</p>
+        <p>Cargando...</p>
+      ) : users.length === 0 ? (
+        <p>No se encontraron registros.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <ul className="users-page__list">
           {users.map((user) => (
-            <div key={user.id || crypto.randomUUID()} style={{ padding: '1rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-container)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {user.name} {user.lastName}
-                  <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>({user.username || 'sin-alias'})</span>
-                </h4>
-                <p style={{ fontSize: '0.85rem', margin: '0.25rem 0', opacity: 0.9 }}>{user.description}</p>
-                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Shield size={12} /> {user.role}
-                  </span>
-                  <span>Modificado: {new Date(user.updatedDate).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => user.id && handleFetchById(user.id)} title="Ver en Detalle">
-                  <Eye size={20} />
-                </button>
-                <button onClick={() => user.id && handleToggleStatus(user.id, user.isActive)} title="Inmutar Estado Lógico">
-                  {user.isActive ? <CheckCircle2 size={20} style={{ color: 'var(--color-accent)' }} /> : <XCircle size={20} style={{ color: 'var(--color-border)' }} />}
-                </button>
-                <button onClick={() => startEdit(user)} title="Editar Atributos">
-                  <Edit size={20} />
-                </button>
-                <button onClick={() => user.id && handleDelete(user.id)} style={{ color: 'var(--color-alert)' }} title="Eliminación Física">
-                  <Trash2 size={20} />
-                </button>
-              </div>
-            </div>
+            <UserListItem
+              key={user.id || ''}
+              user={user}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onActivate={handleActivate}
+            />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

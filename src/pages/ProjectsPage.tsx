@@ -1,244 +1,227 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { projectSchema } from '../utils/validations';
-import type { ProjectFormData } from '../utils/validations';
+import React, { useEffect, useState } from 'react';
 import type { Project } from '../types';
-import { Folder, Trash2, Edit2, Plus, RefreshCw, Eye } from 'lucide-react';
-
-const API_URL = 'http://localhost:5000/api/Project';
+import { projectService } from '../services/projectService';
+import { ProjectListItem } from '../components/ProjectListItem';
+import { projectSchema } from '../schemas/projectSchema';
+import './ProjectsPage.css';
 
 export const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [errorApi, setErrorApi] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [includeInactive, setIncludeInactive] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema)
-  });
+  const [formData, setFormData] = useState({ name: '', description: '', code: '' });
+
+  useEffect(() => {
+    fetchProjects();
+  }, [includeInactive]);
 
   const fetchProjects = async () => {
-    setLoading(true);
-    setErrorApi(null);
     try {
-      const response = await fetch(API_URL);
-      if (!response.ok) throw new Error('Error al obtener los proyectos');
-      const data: Project[] = await response.json();
-      
-      if (data.length === 0) {
-        setProjects([
-          {
-            id: 'c7a84d92-2cb1-4f51-b350-eb28d76de75e',
-            name: 'Proyecto Core E-Commerce',
-            description: 'Contenedor principal para las APIs de Checkout, Catálogo y Pagos.',
-            isActive: true,
-            createdDate: new Date().toISOString(),
-            updatedDate: new Date().toISOString()
-          }
-        ]);
-      } else {
-        setProjects(data);
-      }
-    } catch (error) {
-      setErrorApi('No se pudo establecer comunicación con el backend. Cargando datos simulados.');
-      setProjects([
-        {
-          id: 'c7a84d92-2cb1-4f51-b350-eb28d76de75e',
-          name: 'Proyecto Core E-Commerce (Local)',
-          description: 'Contenedor principal para las APIs de Checkout, Catálogo y Pagos.',
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        }
-      ]);
+      setLoading(true);
+      setError(null);
+      const data = await projectService.getAll(includeInactive);
+      setProjects(data);
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar proyectos');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
 
-  const handleFetchById = async (id: string) => {
-    setErrorApi(null);
-    try {
-      const response = await fetch(`${API_URL}/${id}`);
-      if (!response.ok) throw new Error();
-      const data: Project = await response.json();
-      alert(`Detalle del Proyecto:\nID: ${data.id}\nNombre: ${data.name}\nDescripción: ${data.description}`);
-    } catch {
-      setErrorApi('No se pudo recuperar el detalle específico del proyecto desde el servidor.');
-    }
+    setFormData((prev) => {
+      const updatedForm = { ...prev, [name]: value };
+      const fieldSchema = projectSchema.shape[name as keyof typeof projectSchema.shape];
+
+      if (fieldSchema) {
+        const result = fieldSchema.safeParse(value);
+        if (!result.success) {
+          const issue = result.error.issues[0];
+          setFieldErrors((prevErrors) => ({ ...prevErrors, [name]: issue?.message || 'Campo inválido' }));
+        } else {
+          setFieldErrors((prevErrors) => {
+            const updatedErrors = { ...prevErrors };
+            delete updatedErrors[name];
+            return updatedErrors;
+          });
+        }
+      }
+
+      return updatedForm;
+    });
   };
 
-  const onSubmit = async (data: ProjectFormData) => {
-    setErrorApi(null);
-    try {
-      if (isEditing && selectedProject?.id) {
-        const updatedModel: Project = {
-          ...selectedProject,
-          name: data.name,
-          description: data.description,
-          updatedDate: new Date().toISOString()
-        };
-
-        const response = await fetch(`${API_URL}/${selectedProject.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedModel)
-        });
-
-        if (!response.ok) throw new Error();
-
-        setProjects((prev) => prev.map((item) => item.id === selectedProject.id ? updatedModel : item));
-        alert('Proyecto actualizado correctamente');
-      } else {
-        const newModel: Project = {
-          id: null,
-          name: data.name,
-          description: data.description,
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        };
-
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newModel)
-        });
-
-        if (!response.ok) throw new Error();
-
-        const createdData: Project = await response.json();
-        setProjects((prev) => [...prev, createdData]);
-        alert('Proyecto creado correctamente');
-      }
-      cancelEdit();
-    } catch (error) {
-      setErrorApi('Error al procesar la operación en el servidor. Aplicando cambios localmente.');
-      if (isEditing && selectedProject?.id) {
-        setProjects((prev) => prev.map((item) => item.id === selectedProject.id ? { ...item, name: data.name, description: data.description, updatedDate: new Date().toISOString() } : item));
-      } else {
-        const localMock: Project = {
-          id: crypto.randomUUID(),
-          name: data.name,
-          description: data.description,
-          isActive: true,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString()
-        };
-        setProjects((prev) => [...prev, localMock]);
-      }
-      cancelEdit();
-    }
+  const resetForm = () => {
+    setFormData({ name: '', description: '', code: '' });
+    setEditingId(null);
+    setFieldErrors({});
   };
 
-  const handleSoftDelete = async (id: string) => {
-    if (!confirm('¿Desea aplicar un borrado lógico a este proyecto?')) return;
-    setErrorApi(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
-    try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
+    const result = projectSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          errors[issue.path[0] as string] = issue.message;
+        }
       });
+      setFieldErrors(errors);
+      return;
+    }
 
-      if (!response.ok) throw new Error();
+    try {
+      if (editingId) {
+        await projectService.update(editingId, {
+          name: result.data.name,
+          description: result.data.description,
+        });
 
-      setProjects((prev) => prev.filter((item) => item.id !== id));
-      alert('Proyecto marcado como eliminado del sistema');
-    } catch {
-      setErrorApi('El servidor no procesó el Soft Delete. Removiendo de la visualización del cliente.');
-      setProjects((prev) => prev.filter((item) => item.id !== id));
+        setProjects((prev) => prev.map((project) => project.id === editingId ? { ...project, name: result.data.name, description: result.data.description } : project));
+        resetForm();
+        return;
+      }
+
+      const normalizedCode = result.data.code.trim().toLowerCase();
+      const duplicateProject = projects.some((project) => project.code?.trim().toLowerCase() === normalizedCode);
+
+      if (duplicateProject) {
+        setFieldErrors((prev) => ({ ...prev, code: 'Ya existe un proyecto con este código.' }));
+        return;
+      }
+
+      const created = await projectService.create({
+        name: result.data.name,
+        description: result.data.description,
+        code: result.data.code,
+      });
+      setProjects((prev) => [...prev, created]);
+      resetForm();
+    } catch (err: any) {
+      setError(err.message || 'Error al guardar proyecto');
     }
   };
 
-  const startEdit = (project: Project) => {
-    setSelectedProject(project);
-    setIsEditing(true);
-    setValue('name', project.name);
-    setValue('description', project.description);
+  const handleDelete = async (id: string | null) => {
+    if (!id) return;
+    if (!window.confirm('¿Eliminar proyecto?')) return;
+    try {
+      await projectService.delete(id);
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+    } catch (err: any) {
+      setError(err.message || 'Error al eliminar proyecto');
+    }
   };
 
-  const cancelEdit = () => {
-    setSelectedProject(null);
-    setIsEditing(false);
-    reset();
+  const handleEdit = (project: Project) => {
+    if (!project.id) return;
+    setFormData({ name: project.name, description: project.description, code: project.code || '' });
+    setEditingId(project.id);
+    setFieldErrors({});
+  };
+
+  const handleActivate = async (id: string | null, currentStatus: boolean | undefined) => {
+    if (!id) return;
+    try {
+      const newStatus = !currentStatus;
+      await projectService.changeStatus(id, newStatus);
+      setProjects((prev) => {
+        if (!newStatus && !includeInactive) {
+          return prev.filter((project) => project.id !== id);
+        }
+        return prev.map((project) => project.id === id ? { ...project, isActive: newStatus } : project);
+      });
+    } catch (err: any) {
+      setError(err.message || 'No se pudo cambiar el estado del proyecto.');
+    }
   };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2>Catálogo de Proyectos</h2>
-        <button onClick={fetchProjects} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem', border: '1px solid var(--color-border)' }}>
-          <RefreshCw size={16} /> Sincronizar
-        </button>
-      </div>
+      <h2 className="users-page__title">Administración de Proyectos</h2>
 
-      {errorApi && <p style={{ color: 'var(--color-alert)', padding: '0.5rem', border: '1px solid var(--color-alert)', marginBottom: '1rem' }}>{errorApi}</p>}
+      {error && <div className="users-page__error"><strong>Error:</strong> {error}</div>}
 
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '600px', marginBottom: '2.5rem', padding: '1.5rem', backgroundColor: 'var(--color-container)', border: '1px solid var(--color-border)' }}>
-        <h3>{isEditing ? 'Editar Atributos del Proyecto' : 'Registrar Nuevo Proyecto'}</h3>
-        
-        <div>
-          <input {...register('name')} placeholder="Nombre del Proyecto (Ej: Checkout API)" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)' }} />
-          {errors.name && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.name.message}</p>}
+      <form onSubmit={handleSubmit} className="users-page__form" noValidate>
+        <div className="users-page__field-group">
+          <label htmlFor="name" className="users-page__label">Nombre <span className="users-page__required">*</span></label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Ej. Plataforma API"
+            className={`users-page__input ${fieldErrors.name ? 'users-page__input--error' : ''}`}
+          />
+          {fieldErrors.name && <span className="users-page__feedback-error">{fieldErrors.name}</span>}
         </div>
 
-        <div>
-          <textarea {...register('description')} placeholder="Propósito del contenedor de documentación dentro del catálogo" style={{ width: '100%', padding: '0.5rem', background: 'transparent', color: 'inherit', border: '1px solid var(--color-border)', minHeight: '80px' }} />
-          {errors.description && <p style={{ color: 'var(--color-alert)', fontSize: '0.85rem' }}>{errors.description.message}</p>}
+        <div className="users-page__field-group">
+          <label htmlFor="code" className="users-page__label">Código <span className="users-page__required">*</span></label>
+          <input
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            placeholder="Ej. PLATFORM_API"
+            className={`users-page__input ${fieldErrors.code ? 'users-page__input--error' : ''}`}
+            disabled={Boolean(editingId)}
+          />
+          {fieldErrors.code && <span className="users-page__feedback-error">{fieldErrors.code}</span>}
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button type="submit" style={{ flex: 1, backgroundColor: 'var(--color-accent)', color: '#000000', padding: '0.6rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <Plus size={18} /> {isEditing ? 'Confirmar Cambios' : 'Adicionar Proyecto'}
-          </button>
-          {isEditing && (
-            <button type="button" onClick={cancelEdit} style={{ flex: 1, border: '1px solid var(--color-border)', padding: '0.6rem' }}>
-              Descartar
-            </button>
-          )}
+        <div className="users-page__field-group">
+          <label htmlFor="description" className="users-page__label">Descripción <span className="users-page__required">*</span></label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="Describe el propósito del proyecto"
+            className={`users-page__input ${fieldErrors.description ? 'users-page__input--error' : ''}`}
+            rows={4}
+          />
+          {fieldErrors.description && <span className="users-page__feedback-error">{fieldErrors.description}</span>}
+        </div>
+
+        <div className="users-page__actions">
+          <button type="submit" className="users-page__button">{editingId ? 'Editar' : 'Registrar'}</button>
+          {editingId && <button type="button" onClick={resetForm} className="users-page__button users-page__button--cancel">Cancelar edición</button>}
         </div>
       </form>
 
-      {loading ? (
-        <p>Consultando base de datos remota...</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-          {projects.map((project) => (
-            <div key={project.id || crypto.randomUUID()} style={{ padding: '1.25rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Folder size={20} style={{ color: 'var(--color-accent)' }} />
-                  <h4 style={{ margin: 0 }}>{project.name}</h4>
-                </div>
-                <p style={{ fontSize: '0.9rem', marginBottom: '1rem', opacity: 0.9 }}>{project.description}</p>
-              </div>
+      <div className="users-page__list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px 0' }}>
+        <h3 className="users-page__subtitle" style={{ margin: 0 }}>Proyectos existentes</h3>
 
-              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
-                  U: {new Date(project.updatedDate).toLocaleDateString()}
-                </span>
-                
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => project.id && handleFetchById(project.id)} title="Ver en profundidad e incluir árbol de APIs">
-                    <Eye size={18} />
-                  </button>
-                  <button onClick={() => startEdit(project)} title="Modificar propiedades">
-                    <Edit2 size={18} />
-                  </button>
-                  <button onClick={() => project.id && handleSoftDelete(project.id)} style={{ color: 'var(--color-alert)' }} title="Aplicar Soft Delete">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
+        <label className="users-page__checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(e) => setIncludeInactive(e.target.checked)}
+            className="users-page__checkbox"
+          />
+          <span>Incluir inactivos</span>
+        </label>
+      </div>
+
+      {loading ? <p>Cargando...</p> : projects.length === 0 ? <p>No se encontraron registros.</p> : (
+        <ul className="users-page__list">
+          {projects.map((project) => (
+            <ProjectListItem
+              key={project.id || ''}
+              project={project}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onActivate={handleActivate}
+            />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
