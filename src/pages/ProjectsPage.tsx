@@ -81,12 +81,15 @@ export const ProjectsPage: React.FC = () => {
 
     try {
       if (editingId) {
+        if (!window.confirm('¿Deseas actualizar este proyecto?')) return;
+        
         await projectService.update(editingId, {
           name: result.data.name,
           description: result.data.description,
         });
 
         setProjects((prev) => prev.map((project) => project.id === editingId ? { ...project, name: result.data.name, description: result.data.description } : project));
+        alert('Proyecto actualizado exitosamente');
         resetForm();
         return;
       }
@@ -99,12 +102,15 @@ export const ProjectsPage: React.FC = () => {
         return;
       }
 
+      if (!window.confirm('¿Deseas crear este proyecto?')) return;
+      
       const created = await projectService.create({
         name: result.data.name,
         description: result.data.description,
         code: result.data.code,
       });
       setProjects((prev) => [...prev, created]);
+      alert('Proyecto creado exitosamente');
       resetForm();
     } catch (err: any) {
       setError(err.message || 'Error al guardar proyecto');
@@ -113,10 +119,11 @@ export const ProjectsPage: React.FC = () => {
 
   const handleDelete = async (id: string | null) => {
     if (!id) return;
-    if (!window.confirm('¿Eliminar proyecto?')) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este proyecto?')) return;
     try {
       await projectService.delete(id);
       setProjects((prev) => prev.filter((p) => p.id !== id));
+      alert('Proyecto eliminado exitosamente');
     } catch (err: any) {
       setError(err.message || 'Error al eliminar proyecto');
     }
@@ -211,7 +218,7 @@ export const ProjectsPage: React.FC = () => {
       </div>
 
       {loading ? <p>Cargando...</p> : projects.length === 0 ? <p>No se encontraron registros.</p> : (
-        <ul className="users-page__list">
+        <div className="projects-page__list">
           {projects.map((project) => (
             <ProjectListItem
               key={project.id || ''}
@@ -221,7 +228,7 @@ export const ProjectsPage: React.FC = () => {
               onActivate={handleActivate}
             />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

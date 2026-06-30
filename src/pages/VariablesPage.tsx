@@ -79,6 +79,8 @@ export const VariablesPage: React.FC = () => {
 
     try {
       if (editingId) {
+        if (!window.confirm('¿Deseas actualizar esta variable?')) return;
+        
         await variableService.update(editingId, {
           description: result.data.description,
           dataType: result.data.dataType,
@@ -86,10 +88,13 @@ export const VariablesPage: React.FC = () => {
         });
 
         setItems((prev) => prev.map((item) => item.id === editingId ? { ...item, description: result.data.description, dataType: result.data.dataType, exampleValue: result.data.exampleValue || null } : item));
+        alert('Variable actualizada exitosamente');
         reset();
         return;
       }
 
+      if (!window.confirm('¿Deseas crear esta variable?')) return;
+      
       const created = await variableService.create({
         name: result.data.name,
         description: result.data.description,
@@ -97,6 +102,7 @@ export const VariablesPage: React.FC = () => {
         exampleValue: result.data.exampleValue || null,
       });
       setItems((prev) => [...prev, created]);
+      alert('Variable creada exitosamente');
       reset();
     } catch (err: any) {
       setError(err.message || 'Error al guardar variable');
@@ -105,10 +111,11 @@ export const VariablesPage: React.FC = () => {
 
   const handleDelete = async (id?: string | null) => {
     if (!id) return;
-    if (!window.confirm('¿Eliminar variable?')) return;
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta variable?')) return;
     try {
       await variableService.delete(id);
       setItems((prev) => prev.filter((x) => x.id !== id));
+      alert('Variable eliminada exitosamente');
     } catch (err: any) {
       setError(err.message || 'Error al eliminar variable');
     }
@@ -229,7 +236,7 @@ export const VariablesPage: React.FC = () => {
       </div>
 
       {loading ? <p>Cargando...</p> : items.length === 0 ? <p>No se encontraron registros.</p> : (
-        <ul className="users-page__list">
+        <div className="variables-page__list">
           {items.map((item) => (
             <VariableListItem
               key={item.id || ''}
@@ -239,7 +246,7 @@ export const VariablesPage: React.FC = () => {
               onActivate={handleActivate}
             />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

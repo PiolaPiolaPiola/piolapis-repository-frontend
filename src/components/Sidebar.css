@@ -19,7 +19,7 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: #082018;
+  color: var(--color-accent-text);
   border-radius: 999px;
   overflow: hidden;
 }

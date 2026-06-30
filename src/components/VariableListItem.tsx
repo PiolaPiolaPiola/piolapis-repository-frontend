@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Trash2, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import type { Variable } from '../types';
 import './VariableListItem.css';
 
@@ -11,67 +11,63 @@ interface VariableListItemProps {
 }
 
 export const VariableListItem: React.FC<VariableListItemProps> = ({ variable, onDelete, onEdit, onActivate }) => {
-  const createdDate = variable.createdDate ? new Date(variable.createdDate).toLocaleString() : 'N/A';
-
   return (
-    <li className={`variable-item ${!variable.isActive ? 'variable-item--inactive' : ''}`}>
-      <div className="variable-item__header">
-        <div>
-          <strong style={{ opacity: variable.isActive ? 1 : 0.6 }}>
-            {variable.name} - {variable.dataType}
-          </strong>
-          <span className="variable-item__status" style={{ backgroundColor: variable.isActive ? '' : '#b0cab2', color: variable.isActive ? '' : '#f8f6f6' }}>
-            {!variable.isActive && 'Inactivo'}
+    <div className={`variable-list-item ${!variable.isActive ? 'variable-list-item--inactive' : ''}`}>
+      <div className="variable-list-item__main">
+        <h4 className="variable-list-item__title" style={{ opacity: variable.isActive ? 1 : 0.6 }}>
+          {variable.name}
+        </h4>
+        <p className="variable-list-item__description" style={{ opacity: variable.isActive ? 1 : 0.6 }}>
+          {variable.description}
+        </p>
+        <div className="variable-list-item__meta">
+          <span className="variable-list-item__meta-item">
+            <strong>Tipo:</strong> {variable.dataType}
           </span>
-        </div>
-
-        <div className="variable-item__actions">
-          <button
-            type="button"
-            className={`variable-item__button ${variable.isActive ? 'variable-item__button--toggle-active' : 'variable-item__button--toggle-inactive'}`}
-            onClick={() => variable.id && onActivate(variable.id, variable.isActive)}
-            title={variable.isActive ? 'Desactivar variable' : 'Activar variable'}
-          >
-            {variable.isActive ? (
-              <ToggleRight size={24} style={{ color: '#2e7d32' }} className="icon-toggle" />
-            ) : (
-              <ToggleLeft size={24} style={{ color: '#3e533f' }} className="icon-toggle" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            className="variable-item__button variable-item__button--edit"
-            onClick={() => onEdit(variable)}
-            title="Editar variable"
-          >
-            <Pencil size={16} />
-          </button>
-
-          <button
-            type="button"
-            className="variable-item__button variable-item__button--delete"
-            onClick={() => variable.id && onDelete(variable.id)}
-            title="Eliminar variable"
-          >
-            <Trash2 size={16} />
-          </button>
-
-          <div className="variable-item__info-icon" title={`Creado el: ${createdDate}`}>
-            <Eye size={18} className="icon-eye" />
-          </div>
+          {variable.exampleValue && (
+            <span className="variable-list-item__meta-item">
+              <strong>Ejemplo:</strong> {variable.exampleValue}
+            </span>
+          )}
+          <span className="variable-list-item__meta-item">
+            <strong>Creado:</strong> {new Date(variable.createdDate).toLocaleDateString()}
+          </span>
+          {!variable.isActive && (
+            <span className="variable-list-item__status">Inactivo</span>
+          )}
         </div>
       </div>
 
-      <p className="variable-item__description" style={{ opacity: variable.isActive ? 1 : 0.6 }}>
-        {variable.description}
-      </p>
-
-      {variable.exampleValue && (
-        <div className="variable-item__example">
-          <span>Ejemplo:</span> {variable.exampleValue}
-        </div>
-      )}
-    </li>
+      <div className="variable-list-item__actions">
+        <button
+          type="button"
+          onClick={() => variable.id && onActivate(variable.id, variable.isActive)}
+          className={`variable-list-item__btn ${variable.isActive ? 'variable-list-item__btn--active' : 'variable-list-item__btn--inactive'}`}
+          title={variable.isActive ? 'Desactivar' : 'Activar'}
+        >
+          {variable.isActive ? (
+            <ToggleRight size={20} style={{ color: '#2e7d32' }} />
+          ) : (
+            <ToggleLeft size={20} style={{ color: '#3e533f' }} />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(variable)}
+          className="variable-list-item__btn variable-list-item__btn--edit"
+          title="Editar"
+        >
+          <Pencil size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => variable.id && onDelete(variable.id)}
+          className="variable-list-item__btn variable-list-item__btn--delete"
+          title="Eliminar"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
   );
 };

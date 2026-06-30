@@ -1,0 +1,172 @@
+
+.documentation-page__title {
+  margin: 0 0 2rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.documentation-page__error {
+  color: var(--color-accent-text);
+  background-color: var(--color-alert);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.documentation-page__form {
+  background-color: var(--color-container);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.documentation-page__field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.documentation-page__label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.documentation-page__required {
+  color: var(--color-alert);
+  margin-left: 2px;
+}
+
+.documentation-page__input,
+.documentation-page__select,
+.documentation-page__editor-readonly {
+  width: 100%;
+  font: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+
+.documentation-page__input:focus,
+.documentation-page__select:focus,
+.documentation-page__editor-readonly:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 5px rgba(190, 255, 144, 0.15);
+}
+
+.documentation-page__input--error,
+.documentation-page__select--error {
+  border-color: var(--color-alert, #fa4060) !important;
+}
+
+.documentation-page__input--error:focus,
+.documentation-page__select--error:focus {
+  box-shadow: 0 0 0 5px rgba(250, 64, 96, 0.15) !important;
+}
+
+.documentation-page__select--multiple {
+  height: auto;
+  min-height: 120px;
+}
+
+.documentation-page__feedback-error {
+  font-size: 13px;
+  color: var(--color-alert, #fa4060);
+  margin-top: 0.1rem;
+}
+
+.documentation-page__feedback-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.documentation-page__template-preview {
+  background-color: var(--color-header);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.documentation-page__preview-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.documentation-page__editor-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.documentation-page__editor-readonly {
+  min-height: 150px;
+  resize: vertical;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.85rem;
+  background-color: var(--color-input-bg);
+}
+
+.documentation-page__actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.documentation-page__list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2rem 0 1rem 0;
+}
+
+.documentation-page__subtitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.documentation-page__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.documentation-page__checkbox {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.documentation-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.documentation-page__empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 2rem;
+}

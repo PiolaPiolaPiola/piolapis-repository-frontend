@@ -1,94 +1,106 @@
-.variable-item {
-  background: var(--color-container);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 1rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  box-shadow: 0 10px 24px rgba(16, 38, 31, 0.05);
-}
-
-.variable-item--inactive {
-  opacity: 0.8;
-}
-
-.variable-item__header {
+.variable-list-item {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--color-container);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  gap: 1rem;
+  transition: all 0.2s ease;
 }
 
-.variable-item__meta {
-  color: var(--color-text-secondary);
+.variable-list-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.variable-list-item--inactive {
+  opacity: 0.7;
+}
+
+.variable-list-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.variable-list-item__title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.variable-list-item__description {
+  margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
-  margin-top: 0.25rem;
-}
-
-.variable-item__status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  margin-top: 0.45rem;
-  margin-left: 15px;
-}
-
-.variable-item__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.variable-item__button {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 0.4rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.variable-item__button:hover {
-  background: rgba(64, 81, 110, 0.08);
-}
-
-.variable-item__button--toggle-active,
-.variable-item__button--toggle-inactive {
-  padding: 0.2rem;
-}
-
-.variable-item__button--edit {
-  color: var(--color-accent);
-}
-
-.variable-item__button--delete {
-  color: var(--color-alert);
-}
-
-.variable-item__description {
   color: var(--color-text-secondary);
-  font-size: 12px;
-  margin: 2px 0;
-  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.variable-item__example {
-  color: var(--color-text-secondary);
-  font-size: 12px;
+.variable-list-item__meta {
   display: flex;
-  gap: 0.35rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.variable-item__info-icon {
+.variable-list-item__meta-item {
+  font-size: 0.85rem;
   color: var(--color-text-secondary);
-  display: inline-flex;
+}
+
+.variable-list-item__status {
+  display: inline-block;
+  background-color: #b0cab2;
+  color: #f8f6f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.variable-list-item__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.variable-list-item__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.variable-list-item__btn:hover {
+  background-color: rgba(110, 240, 200, 0.1);
+}
+
+.variable-list-item__btn--active,
+.variable-list-item__btn--inactive {
+  color: inherit;
+}
+
+.variable-list-item__btn--edit {
+  color: #0066cc;
+}
+
+.variable-list-item__btn--edit:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+.variable-list-item__btn--delete {
+  color: #dc3545;
+}
+
+.variable-list-item__btn--delete:hover {
+  background-color: rgba(220, 53, 69, 0.1);
 }

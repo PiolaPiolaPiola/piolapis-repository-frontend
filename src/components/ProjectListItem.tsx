@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Trash2, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import type { Project } from '../types';
 import './ProjectListItem.css';
 
@@ -11,60 +11,60 @@ interface ProjectListItemProps {
 }
 
 export const ProjectListItem: React.FC<ProjectListItemProps> = ({ project, onDelete, onEdit, onActivate }) => {
-  const createdDate = project.createdDate ? new Date(project.createdDate).toLocaleString() : 'N/A';
-
   return (
-    <li className={`project-item ${!project.isActive ? 'project-item--inactive' : ''}`}>
-      <div className="project-item__header">
-        <div>
-          <strong style={{ opacity: project.isActive ? 1 : 0.6 }}>{project.name}</strong>
-          <div className="project-item__meta">{project.code}</div>
-          <span className="project-item__status" style={{ backgroundColor: project.isActive ? '' : '#b0cab2', color: project.isActive ? '' : '#f8f6f6' }}>
-            {!project.isActive && 'Inactivo'}
+    <div className={`project-list-item ${!project.isActive ? 'project-list-item--inactive' : ''}`}>
+      <div className="project-list-item__main">
+        <h4 className="project-list-item__title" style={{ opacity: project.isActive ? 1 : 0.6 }}>
+          {project.name}
+        </h4>
+        <p className="project-list-item__description" style={{ opacity: project.isActive ? 1 : 0.6 }}>
+          {project.description}
+        </p>
+        <div className="project-list-item__meta">
+          {project.code && (
+            <span className="project-list-item__meta-item">
+              <strong>Código:</strong> {project.code}
+            </span>
+          )}
+          <span className="project-list-item__meta-item">
+            <strong>Creado:</strong> {new Date(project.createdDate).toLocaleDateString()}
           </span>
-        </div>
-
-        <div className="project-item__actions">
-          <button
-            type="button"
-            className={`project-item__button ${project.isActive ? 'project-item__button--toggle-active' : 'project-item__button--toggle-inactive'}`}
-            onClick={() => project.id && onActivate(project.id, project.isActive)}
-            title={project.isActive ? 'Desactivar proyecto' : 'Activar proyecto'}
-          >
-            {project.isActive ? (
-              <ToggleRight size={24} style={{ color: '#2e7d32' }} className="icon-toggle" />
-            ) : (
-              <ToggleLeft size={24} style={{ color: '#3e533f' }} className="icon-toggle" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            className="project-item__button project-item__button--edit"
-            onClick={() => onEdit(project)}
-            title="Editar proyecto"
-          >
-            <Pencil size={16} />
-          </button>
-
-          <button
-            type="button"
-            className="project-item__button project-item__button--delete"
-            onClick={() => project.id && onDelete(project.id)}
-            title="Eliminar proyecto"
-          >
-            <Trash2 size={16} />
-          </button>
-
-          <div className="project-item__info-icon" title={`Creado el: ${createdDate}`}>
-            <Eye size={18} className="icon-eye" />
-          </div>
+          {!project.isActive && (
+            <span className="project-list-item__status">Inactivo</span>
+          )}
         </div>
       </div>
 
-      <p className="project-item__description" style={{ opacity: project.isActive ? 1 : 0.6 }}>
-        {project.description}
-      </p>
-    </li>
+      <div className="project-list-item__actions">
+        <button
+          type="button"
+          onClick={() => project.id && onActivate(project.id, project.isActive)}
+          className={`project-list-item__btn ${project.isActive ? 'project-list-item__btn--active' : 'project-list-item__btn--inactive'}`}
+          title={project.isActive ? 'Desactivar' : 'Activar'}
+        >
+          {project.isActive ? (
+            <ToggleRight size={20} style={{ color: '#2e7d32' }} />
+          ) : (
+            <ToggleLeft size={20} style={{ color: '#3e533f' }} />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(project)}
+          className="project-list-item__btn project-list-item__btn--edit"
+          title="Editar"
+        >
+          <Pencil size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => project.id && onDelete(project.id)}
+          className="project-list-item__btn project-list-item__btn--delete"
+          title="Eliminar"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
   );
 };

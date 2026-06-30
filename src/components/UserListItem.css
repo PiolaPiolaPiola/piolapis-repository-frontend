@@ -1,95 +1,106 @@
-.user-item {
-  margin-bottom: 4px;
-  list-style: none;
-  border: 1px solid var(--color-border, #ccc);
-  padding: 1rem;
-  background-color: var(--color-container);
-  border-radius: 8px;
-}
-
-.user-item__header {
+.user-list-item {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--color-container);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  gap: 1rem;
+  transition: all 0.2s ease;
 }
 
-.user-item__role {
-  display: inline-block;
-  color: #acd6b2;
-  margin-left: 0.25rem;
-  font-size: 0.95rem;
+.user-list-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.user-item__description {
-  margin: 3px 0;
-  font-size: 11px;
-  font-style: italic;
-  color: #eee5e5;
+.user-list-item--inactive {
+  opacity: 0.7;
 }
 
-.user-item__meta {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: #777;
+.user-list-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-list-item__title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.user-list-item__description {
+  margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.user-item__actions {
-display: flex;
-  align-items: center; 
-  gap: 10px;
-}
-
-.user-item__button {
-  display: inline-flex;
+.user-list-item__meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.user-item__button--edit {
-  color: #64748b;
+.user-list-item__meta-item {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
 }
 
-.user-item__button--edit:hover {
-  color: #2563eb;
-  transform: scale(1.1);
-}
-
-.user-item__button--delete {
-  color: #94a3b8;
-}
-
-.user-item__button--delete:hover {
-  color: #dc2626;
-  transform: scale(1.1);
-}
-
-.user-item__info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  cursor: help;
-  color: #64748b;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.user-item__info-icon:hover {
-  color: #3b82f6;
-  transform: scale(1.1);
-}
-
-.user-item__status{
-  font-size: 10px;
-  padding: 2px 6px;
+.user-list-item__status {
+  display: inline-block;
+  background-color: #b0cab2;
+  color: #f8f6f6;
+  padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  margin-left: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.user-list-item__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.user-list-item__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.user-list-item__btn:hover {
+  background-color: rgba(110, 240, 200, 0.1);
+}
+
+.user-list-item__btn--active,
+.user-list-item__btn--inactive {
+  color: inherit;
+}
+
+.user-list-item__btn--edit {
+  color: #0066cc;
+}
+
+.user-list-item__btn--edit:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+.user-list-item__btn--delete {
+  color: #dc3545;
+}
+
+.user-list-item__btn--delete:hover {
+  background-color: rgba(220, 53, 69, 0.1);
 }

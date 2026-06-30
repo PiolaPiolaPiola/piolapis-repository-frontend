@@ -6,11 +6,11 @@ import darkLogo from '../assets/Logo_oscuro.png';
 import { 
   Users, 
   FolderGit2, 
-  Settings, 
   Hash,
   FileText,
   MessageSquare,
   Layers,
+  Boxes,
   Sun, 
   Moon, 
   LogOut, 
@@ -116,9 +116,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/documentaciones" style={linkStyle}>
-              <FileText size={20} />
-              {!isCollapsed && <span>Documentaciones</span>}
+            <NavLink to="/template-dtos" style={linkStyle}>
+              <Boxes size={20} />
+              {!isCollapsed && <span>Plantillas DTOs</span>}
             </NavLink>
           </li>
           <li>
@@ -134,9 +134,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/configuration" style={linkStyle}>
-              <Settings size={20} />
-              {!isCollapsed && <span>Configuración</span>}
+            <NavLink to="/documentaciones" style={linkStyle}>
+              <FileText size={20} />
+              {!isCollapsed && <span>Documentaciones</span>}
             </NavLink>
           </li>
         </ul>

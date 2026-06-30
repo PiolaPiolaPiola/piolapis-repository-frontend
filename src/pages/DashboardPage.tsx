@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FolderGit2, FileText, MessageSquare, Layers, Users } from 'lucide-react';
+import { FolderGit2, FileText, MessageSquare, Layers, Users, Hash } from 'lucide-react';
 import './Dashboard.css';
 
 export const DashboardPage: React.FC = () => {
   const cards = [
+    { title: 'Usuarios', desc: 'Personas que interactúan con el catálogo y sus permisos.', to: '/users' },
     { title: 'Proyectos', desc: 'Documenta más de un proyecto dentro de un mismo catálogo.', to: '/projects' },
-    { title: 'Plantillas DTOs', desc: 'Plantillas reutilizables de DTOs de request / response por recurso.', to: '/documentaciones' },
+    { title: 'Variables', desc: 'Variables estándar de propiedades para las APIs', to: '/variables' },
+    { title: 'Plantillas DTOs', desc: 'Plantillas reutilizables de DTOs de request / response por recurso.', to: '/template-dtos' },
     { title: 'Mensajes / Códigos', desc: 'Estandariza mensajes para los códigos genéricos de tus procesos.', to: '/mensajes-codigos' },
     { title: 'Configuración Documentación', desc: 'Formato estándar (JSON, Schema), tipo de API (REST, etc.) y reglas.', to: '/configuraciones-documentacion' },
-    { title: 'Usuarios', desc: 'Personas que interactúan con el catálogo y sus permisos.', to: '/users' }
+    { title: 'Documentaciones', desc: 'Documentación de las APIs con todos los componentes configurados', to: '/documentaciones' },
   ];
 
   return (
@@ -24,7 +26,9 @@ export const DashboardPage: React.FC = () => {
           if (c.title === 'Plantillas DTOs') Icon = FileText;
           if (c.title === 'Mensajes / Códigos') Icon = MessageSquare;
           if (c.title === 'Configuración Documentación') Icon = Layers;
+          if (c.title === 'Variables') Icon = Hash;
           if (c.title === 'Usuarios') Icon = Users;
+          if (c.title === 'Documentaciones') Icon = FileText;
 
           return (
             <Link key={c.title} to={c.to} className="dashboard__card">

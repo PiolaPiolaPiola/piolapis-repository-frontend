@@ -4,10 +4,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_SETTINGS_ENDPOINT = API_BASE_URL + '/v1/configuraciones-documentacion';
 
 export const documentationSettingService = {
-  async getAll(): Promise<DocumentationSetting[]> {
+  async getAll(includeInactive: boolean = false): Promise<DocumentationSetting[]> {
     const response = await fetch(API_SETTINGS_ENDPOINT);
     if (!response.ok) throw new Error('Error al obtener configuraciones');
-    return response.json();
+    const data = await response.json();
+    return includeInactive ? data : data.filter((item: DocumentationSetting) => item.isActive);
   },
 
   async getById(id: string): Promise<DocumentationSetting> {
@@ -16,7 +17,7 @@ export const documentationSettingService = {
     return response.json();
   },
 
-  async create(payload: { name: string; description: string; baseEndpoint: string; apiType: string; proyectoId: string }): Promise<DocumentationSetting> {
+  async create(payload: { name: string; description: string; code?: string; baseEndpoint: string; apiType: string; proyectoId: string }): Promise<DocumentationSetting> {
     const response = await fetch(API_SETTINGS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -41,6 +42,13 @@ export const documentationSettingService = {
     }
   },
 
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${API_SETTINGS_ENDPOINT}/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Error al eliminar configuración');
+  },
+
   async changeStatus(id: string, isActive: boolean): Promise<void> {
     const response = await fetch(`${API_SETTINGS_ENDPOINT}/${id}/estado`, {
       method: 'PATCH',
@@ -48,10 +56,5 @@ export const documentationSettingService = {
       body: JSON.stringify({ isActive })
     });
     if (!response.ok) throw new Error('Error al cambiar estado');
-  },
-
-  async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_SETTINGS_ENDPOINT}/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Error al eliminar configuración');
   }
 };

@@ -29,13 +29,14 @@
 .dashboard__card-icon {
   width: 44px;
   height: 44px;
-  background: #eaffd6;
+  background: var(--color-accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
   font-size: 1.25rem;
   margin-bottom: 0.75rem;
+  color: var(--color-accent-text);
 }
 
 .dashboard__card h3 {

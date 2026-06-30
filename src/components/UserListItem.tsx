@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Trash2, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import type { User } from '../types';
 import './UserListItem.css';
 
@@ -11,62 +11,58 @@ interface UserListItemProps {
 }
 
 export const UserListItem: React.FC<UserListItemProps> = ({ user, onDelete, onEdit, onActivate }) => {
-  const createdDate = user.createdDate ? new Date(user.createdDate).toLocaleString() : 'N/A';
-
   return (
-    <li className={`user-item ${!user.isActive ? 'user-item--inactive' : ''}`}>
-      <div className="user-item__header">
-        <div>
-          <strong style={{ opacity: user.isActive ? 1 : 0.6 }}>
-            {user.name} {user.lastName}
-          </strong>
-          <div className="user-item__role">- <em>{user.role}</em></div>
-            <span className="user-item__status" style={{ backgroundColor: user.isActive ? '' : '#b0cab2', color: user.isActive ? '' : '#f8f6f6' }}>
-              {!user.isActive && 'Inactivo'}
-            </span>
-        </div>
-
-        <div className="user-item__actions">
-          <button
-            type="button"
-            className={`user-item__button ${user.isActive ? 'user-item__button--toggle-active' : 'user-item__button--toggle-inactive'}`}
-            onClick={() => user.id && onActivate(user.id, user.isActive)}
-            title={user.isActive ? "Desactivar usuario" : "Activar usuario"}
-          >
-            {user.isActive ? (
-              <ToggleRight size={24} style={{ color: '#2e7d32' }} className="icon-toggle" />
-            ) : (
-              <ToggleLeft size={24} style={{ color: '#3e533f' }} className="icon-toggle" />
-            )}
-          </button>
-          
-          <button
-            type="button"
-            className="user-item__button user-item__button--edit"
-            onClick={() => onEdit(user)}
-            title="Editar usuario"
-          >
-            <Pencil size={16} />
-          </button>
-
-          <button
-            type="button"
-            className="user-item__button user-item__button--delete"
-            onClick={() => user.id && onDelete(user.id)}
-            title="Eliminar usuario"
-          >
-            <Trash2 size={16} />
-          </button>
-
-          <div className="user-item__info-icon" title={`Creado el: ${createdDate}`}>
-            <Eye size={18} className="icon-eye" />
-          </div>
+    <div className={`user-list-item ${!user.isActive ? 'user-list-item--inactive' : ''}`}>
+      <div className="user-list-item__main">
+        <h4 className="user-list-item__title" style={{ opacity: user.isActive ? 1 : 0.6 }}>
+          {user.name} {user.lastName}
+        </h4>
+        <p className="user-list-item__description" style={{ opacity: user.isActive ? 1 : 0.6 }}>
+          {user.description}
+        </p>
+        <div className="user-list-item__meta">
+          <span className="user-list-item__meta-item">
+            <strong>Rol:</strong> {user.role}
+          </span>
+          <span className="user-list-item__meta-item">
+            <strong>Creado:</strong> {new Date(user.createdDate).toLocaleDateString()}
+          </span>
+          {!user.isActive && (
+            <span className="user-list-item__status">Inactivo</span>
+          )}
         </div>
       </div>
 
-      <p className="user-item__description" style={{ opacity: user.isActive ? 1 : 0.6 }}>
-        {user.description}
-      </p>
-    </li>
+      <div className="user-list-item__actions">
+        <button
+          type="button"
+          onClick={() => user.id && onActivate(user.id, user.isActive)}
+          className={`user-list-item__btn ${user.isActive ? 'user-list-item__btn--active' : 'user-list-item__btn--inactive'}`}
+          title={user.isActive ? 'Desactivar' : 'Activar'}
+        >
+          {user.isActive ? (
+            <ToggleRight size={20} style={{ color: '#2e7d32' }} />
+          ) : (
+            <ToggleLeft size={20} style={{ color: '#3e533f' }} />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(user)}
+          className="user-list-item__btn user-list-item__btn--edit"
+          title="Editar"
+        >
+          <Pencil size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => user.id && onDelete(user.id)}
+          className="user-list-item__btn user-list-item__btn--delete"
+          title="Eliminar"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
   );
 };

@@ -104,6 +104,8 @@ export const UsersPage: React.FC = () => {
 
     try {
       if (isEditing && editingUserId) {
+        if (!window.confirm('¿Deseas actualizar este usuario?')) return;
+        
         await userService.update(editingUserId, {
           name: validatedData.name,
           lastName: validatedData.lastName,
@@ -116,13 +118,17 @@ export const UsersPage: React.FC = () => {
             : user
         ));
 
+        alert('Usuario actualizado exitosamente');
         resetForm();
         return;
       }
 
+      if (!window.confirm('¿Deseas crear este usuario?')) return;
+      
       const createdUser = await userService.create(validatedData);
 
       setUsers((prev) => [...prev, createdUser]);
+      alert('Usuario creado exitosamente');
       resetForm();
     } catch (err: any) {
       setError(err.message || (isEditing ? 'No se pudo actualizar el usuario.' : 'No se pudo guardar el usuario.'));
@@ -131,12 +137,13 @@ export const UsersPage: React.FC = () => {
 
   const handleDelete = async (id: string | null) => {
     if (!id) return;
-    if (!window.confirm('¿Está seguro de eliminar este usuario?')) return;
+    if (!window.confirm('¿Está seguro de que desea eliminar este usuario?')) return;
 
     try {
       setError(null);
       await userService.delete(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
+      alert('Usuario eliminado exitosamente');
     } catch (err: any) {
       setError(err.message || 'No se pudo eliminar el usuario.');
     }
@@ -158,6 +165,8 @@ export const UsersPage: React.FC = () => {
 
   const handleActivate = async (id: string | null, currentStatus: boolean | undefined) => {
     if (!id) return;
+    const newStatus = !currentStatus;
+    if (!window.confirm(`¿Deseas ${newStatus ? 'activar' : 'desactivar'} este usuario?`)) return;
 
     try {
       setError(null);
@@ -283,7 +292,7 @@ export const UsersPage: React.FC = () => {
       ) : users.length === 0 ? (
         <p>No se encontraron registros.</p>
       ) : (
-        <ul className="users-page__list">
+        <div className="users-page__list">
           {users.map((user) => (
             <UserListItem
               key={user.id || ''}
@@ -293,7 +302,7 @@ export const UsersPage: React.FC = () => {
               onActivate={handleActivate}
             />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

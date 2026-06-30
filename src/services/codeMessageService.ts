@@ -1,11 +1,19 @@
 import type { CodeMessage } from '../types';
 
+type CodeMessagePayload = {
+  name: string;
+  description: string;
+  httpCode: string;
+  response: string;
+  responseType: string;
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_CODES_ENDPOINT = API_BASE_URL + '/v1/mensajes-codigos';
+const API_CODES_ENDPOINT = `${API_BASE_URL}/v1/mensajes-codigos`;
 
 export const codeMessageService = {
-  async getAll(): Promise<CodeMessage[]> {
-    const response = await fetch(API_CODES_ENDPOINT);
+  async getAll(includeInactive = false): Promise<CodeMessage[]> {
+    const response = await fetch(`${API_CODES_ENDPOINT}?includeInactive=${includeInactive}`);
     if (!response.ok) throw new Error('Error al obtener códigos');
     return response.json();
   },
@@ -16,7 +24,7 @@ export const codeMessageService = {
     return response.json();
   },
 
-  async create(payload: { name: string; description: string; code: string; type?: string | null; httpCode: string; response: string; responseType: string }): Promise<CodeMessage> {
+  async create(payload: CodeMessagePayload): Promise<CodeMessage> {
     const response = await fetch(API_CODES_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,7 +37,7 @@ export const codeMessageService = {
     return response.json();
   },
 
-  async update(id: string, payload: { name: string; description: string; httpCode: string; response: string; responseType: string }): Promise<void> {
+  async update(id: string, payload: CodeMessagePayload): Promise<void> {
     const response = await fetch(`${API_CODES_ENDPOINT}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

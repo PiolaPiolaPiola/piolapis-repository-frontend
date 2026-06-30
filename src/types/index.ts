@@ -46,7 +46,8 @@ export interface DocumentationSetting {
   updatedDate: string;
   baseEndpoint: string;
   apiType: string;
-  proyectoId: string;
+  plantillaDtoIdRequest: string;
+  plantillaDtoResponse: string;
 }
 
 export interface Variable {
@@ -66,12 +67,15 @@ export interface Documentation {
   id: string | null;
   name: string;
   description: string;
-  code?: string | null;
-  type?: string | null;
   proyectoId: string;
   configuracionDocumentacionId: string;
-  plantillaDtoId: string;
+  plantillaDtoIdRequest: string;
+  plantillaDtoResponse: string;
   version: string;
+  endpointEspecifico?: string | null;
+  parametros?: string | null;
+  mensajesError?: string | null;
+  isPublic?: boolean;
   isActive: boolean;
   createdDate: string;
   updatedDate: string;
@@ -82,10 +86,26 @@ export interface CodeMessage {
   name: string;
   description: string;
   code?: string | null;
-  type?: string | null;
   httpCode: string;
   response: string;
   responseType: string;
+  isActive: boolean;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export interface TemplateDto {
+  id: string | null;
+  name: string;
+  description: string;
+  type: string;
+  code?: string | null;
+  requestType: string;
+  request: string;
+  response: string;
+  responseType: string;
+  isShared: boolean;
+  tags?: string | null;
   isActive: boolean;
   createdDate: string;
   updatedDate: string;

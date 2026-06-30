@@ -1,11 +1,31 @@
 import type { Documentation } from '../types';
 
+type DocumentationPayload = {
+  name: string;
+  description: string;
+  code?: string;
+  type?: string;
+  version: string;
+  proyectoId: string;
+  configuracionDocumentacionId: string;
+  plantillaDtoResponse?: string;
+  plantillaDtoIdRequest?: string;
+  endpointEspecifico?: string;
+  parametros?: string;
+  mensajesError?: string;
+  isPublic?: boolean;
+};
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_DOCS_ENDPOINT = API_BASE_URL + '/v1/documentaciones';
 
 export const documentationService = {
-  async getAll(proyectoId?: string): Promise<Documentation[]> {
-    const url = proyectoId ? `${API_DOCS_ENDPOINT}?proyectoId=${encodeURIComponent(proyectoId)}` : API_DOCS_ENDPOINT;
+  async getAll(proyectoId?: string, includeInactive = false): Promise<Documentation[]> {
+    const params = new URLSearchParams();
+    if (proyectoId) params.append('proyectoId', proyectoId);
+    params.append('includeInactive', includeInactive.toString());
+    
+    const url = params.toString() ? `${API_DOCS_ENDPOINT}?${params.toString()}` : API_DOCS_ENDPOINT;
     const response = await fetch(url);
     if (!response.ok) throw new Error('Error al obtener documentaciones');
     return response.json();
@@ -17,7 +37,7 @@ export const documentationService = {
     return response.json();
   },
 
-  async create(payload: { name: string; description: string; code: string; type?: string | null; proyectoId: string; configuracionDocumentacionId: string; plantillaDtoId: string; version: string }): Promise<Documentation> {
+  async create(payload: DocumentationPayload): Promise<Documentation> {
     const response = await fetch(API_DOCS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -30,7 +50,7 @@ export const documentationService = {
     return response.json();
   },
 
-  async update(id: string, payload: { name: string; description: string; version: string; plantillaDtoId: string }): Promise<void> {
+  async update(id: string, payload: Partial<DocumentationPayload>): Promise<void> {
     const response = await fetch(`${API_DOCS_ENDPOINT}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
