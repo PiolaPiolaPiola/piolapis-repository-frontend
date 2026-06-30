@@ -1,0 +1,65 @@
+name: Build & Deploy (NPM)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  PUBLISH_URL: ${{ secrets.LIN_CLOUD_URL_10051 }}
+  PUBLISH_KEY: ${{ secrets.LIN_CLOUD_KEY_10051 }}
+  NODE_VERSION: 22 # ej: 20 / 18
+  DIST_DIR: ${{ secrets.LIN_CLOUD_DIST_DIR_10051 }}
+  ZIP_NAME: app.zip
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --------------------
+      # Checkout
+      # --------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --------------------
+      # Setup Node
+      # --------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # --------------------
+      # Install dependencies
+      # --------------------
+      - name: Install dependencies
+        run: npm ci
+
+      # ====================
+      # 1️⃣ BUILD
+      # ====================
+      - name: Build project
+        run: npm run build
+
+      # --------------------
+      # Zip dist
+      # --------------------
+      - name: Zip dist folder
+        run: |
+          cd "$DIST_DIR"
+          zip -r ../${ZIP_NAME} .
+
+      # --------------------
+      # Deploy
+      # --------------------
+      - name: Upload ZIP a LIN Cloud IIS Push
+        run: |
+          curl -X POST \
+            "$PUBLISH_URL/api/Publish?createRelease=true" \
+            -H "accept: text/plain" \
+            -H "Content-Type: multipart/form-data" \
+            -H "Key: $PUBLISH_KEY" \
+            -F "file=@${ZIP_NAME}"
