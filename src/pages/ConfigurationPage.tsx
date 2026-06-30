@@ -13,7 +13,9 @@ export const ConfigurationPage: React.FC = () => {
       updatedDate: new Date().toISOString(),
       baseEndpoint: 'https://api.enterprise.com/v1',
       apiType: 'R',
-      proyectoId: '00000000-0000-0000-0000-000000000000'
+      proyectoId: '00000000-0000-0000-0000-000000000000',
+      plantillaDtoIdRequest: '',
+      plantillaDtoResponse: ''
     }
   ]);
 
@@ -44,7 +46,9 @@ export const ConfigurationPage: React.FC = () => {
       updatedDate: new Date().toISOString(),
       baseEndpoint: formData.baseEndpoint,
       apiType: formData.apiType,
-      proyectoId: formData.proyectoId
+      proyectoId: formData.proyectoId,
+      plantillaDtoIdRequest: '',
+      plantillaDtoResponse: ''
     };
     setSettings((prev) => [...prev, newSetting]);
     alert('Configuración creada exitosamente');

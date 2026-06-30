@@ -48,6 +48,7 @@ export interface DocumentationSetting {
   apiType: string;
   plantillaDtoIdRequest: string;
   plantillaDtoResponse: string;
+  proyectoId: string;
 }
 
 export interface Variable {
